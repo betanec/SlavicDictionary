@@ -1,0 +1,10 @@
+public List<LinguisticForm> GetWords()
+    {
+        return new List<LinguisticForm> {
+            new LinguisticForm{ Lemma = "вечерѧ", Word = "вечерю", PartOfSpeech = PartOfSpeech.Verb, GrammaticalCase = GrammaticalCase.Accusative  },
+            new LinguisticForm{ Lemma = "вечерѧ", Word = "вечерю", PartOfSpeech = PartOfSpeech.Adjective, GrammaticalCase = GrammaticalCase.Dative },
+            new LinguisticForm{ Lemma = "вечерѧ", Word = "вечеры", PartOfSpeech = PartOfSpeech.Verb, GrammaticalCase = GrammaticalCase.Accusative, Meaning = "Крутое значение"  },
+            new LinguisticForm{ Lemma = "вечерѧ", Word = "вечеря", PartOfSpeech = PartOfSpeech.Verb, GrammaticalCase = GrammaticalCase.Genitive, ParticipleType = ParticipleType.Perfect },
+            new LinguisticForm{ Lemma = "прагать", Word = "прыгаем", PartOfSpeech = PartOfSpeech.Verb, GrammaticalCase = GrammaticalCase.Genitive, GrammaticalNumber = GrammaticalNumber.Plural },
+        };
+    }
