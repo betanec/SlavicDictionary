@@ -1,7 +1,12 @@
 import os
 import json
 from pprint import pprint
+import re
+from super_d import d_for_merge
+from jinja2 import Template
 
+file = "ana_out.json"
+net_f_path = r"Enums/Thesaurus"
 
 class MainReader:
 
@@ -12,7 +17,7 @@ class MainReader:
         self.net_str = self.net_class_reader()
 
     def json_to_dict(self):
-        return json.load(open(self.json_f))
+        return json.load(open(self.json_f, encoding='utf-8'))
 
     def net_class_reader(self) -> dict:
         aggregation = dict()
@@ -26,11 +31,10 @@ class MainReader:
         return aggregation
 
 
-
 class TestDictionary(MainReader):
-
-    # те поля в которых только словоформы
-    unique_fields = ["lemma", "word", "Форма наст. вр.", "Комментарий", "gramm"]
+    # не для мэтча
+    unique_fields = ["lemma", "word", "Форма наст. вр.", "Комментарий", "gramm", "grdic", "tag_str",
+                     "tags", "manual", "Ошибка", "Тип склонения", "Возвратность"]
 
     def __init__(self, json_f: str, net_f_path: str) -> None:
         super().__init__(json_f, net_f_path)
@@ -53,11 +57,108 @@ class TestDictionary(MainReader):
                         continue
         return res
 
+    def merge_json_keys_with_main_net_class(self, file: str = "LinguisticForm.cs") -> dict():
+        nfile = open(file, 'r', encoding="UTF-8").read()
+        n_class_d = dict()
+        for k in self.json_f_filing.keys():
+            p = nfile.find(k)
+            if p > -1:
+                found = nfile[p:p + len(k)]
+                # print()
+                print(k, found, k == found)
+                pattern = f"\/\/\/\s({k}[\s\/А-я][^\n]+)\n*\s*\/\/\/\s*?<\/summary\>\s*\n*public\s([A-z]+)"
+                net_class = re.search(pattern, string=nfile)
+                n_class_d[k] = net_class.group(2)
+            else:
+                continue
+                # print("Lost:", k)
+        return n_class_d
+
+    def create_match_d(self, gr: int = 1) -> dict:
+        matched_d = dict()
+        n_class_d = self.merge_json_keys_with_main_net_class()
+        pprint(self.json_f_filing)
+        for k, v in self.json_f_filing.items():
+            for lv in v:
+                clean_ss = lv.replace(".", "")
+                p = f'({clean_ss}[a-я\s]+)\"\)\]\n*?\s*?([a-z]+)|({clean_ss})\"\)\]\n*?\s*?([a-z]+)'
+                # for kn, vn in self.net_str.items():
+                if k in n_class_d:
+                    file = n_class_d[k]+".cs"
+                    vn = self.net_str[file]
+                    res = re.search(pattern=p, string=vn.lower())
+                    print(res)
+                    if res is not None:
+                        # print(res.groups(), lv, kn)
+                        cleaned_from_none = [i for i in res.groups() if i]
+                        if k not in matched_d:
+                            matched_d[k] = {"NF": file.replace(".cs", ""), "match_t": {lv: cleaned_from_none[gr].title()}}
+                        else:
+                            matched_d[k]["match_t"][lv] = cleaned_from_none[gr].title()
+                    else:
+                        if k not in matched_d:
+                            matched_d[k] = {"NF": file.replace(".cs", ""), "match_t": {lv: ''}}
+                        else:
+                            matched_d[k]["match_t"][lv] = ''
+                else:
+                    print(k)
+                    continue
+
+        return matched_d
 
 
-file = "ana_out.json"
-net_f_path = r"Enums/Thesaurus"
-cls = TestDictionary(json_f=file, net_f_path=net_f_path)
-json_d = cls.fields_filling()
-pprint(json_d)
-print(json_d.keys())
+# pprint(TestDictionary(json_f=file, net_f_path=net_f_path).create_match_d())
+
+
+class ConversionDictionary(TestDictionary):
+
+    ServiceComment = ["grdic", "Форма наст. вр.", "gramm"]
+
+    must_have_w = {"Lemma": "lemma", "Word": "word", "Comment": "Комментарий"}
+
+    def __init__(self, json_f: str, net_f_path: str) -> None:
+        super().__init__(json_f, net_f_path)
+        self.conv = self.get_conversion()
+
+
+    def get_conversion(self) -> dict:
+        answer = dict()
+        for key, val in self.json_d.items():
+            trash = []
+            answer[key] = list()
+            for temp in val:
+                answer[key] += [f'{k} = "{y}"' for k, v in self.must_have_w.items() if (y := temp.get(v))]
+                for ke, va in temp.items():
+                    if ke not in self.unique_fields:
+                        clast = d_for_merge[ke]
+                        cls = clast["NF"]
+                        cls_fillness = clast["match_t"]
+                        va = va.lower()
+                        if va in cls_fillness:
+                            net_v = cls_fillness[va]
+                            answer[key].append(f"{cls} = {cls}.{net_v}")
+                        else:
+                            continue
+                    elif ke in self.ServiceComment:
+                        trash.append(f"{ke} : {va}")
+            answer[key].append(f'ServiceComment = "' + ";".join([i for i in trash]) + '"')
+
+        return answer
+
+
+cls = ConversionDictionary(json_f=file, net_f_path=net_f_path)
+main_dict = cls.get_conversion()
+
+st = """public List<LinguisticForm> GetWords()
+    {
+        return new List<LinguisticForm> {
+            {% for word in main_dict -%}
+                new LinguisticForm{ {{', '.join(main_dict[word])}} },
+            {% endfor -%}
+        };
+    }"""
+
+tm = Template(st)
+msg = tm.render(main_dict=main_dict)
+with open("net_result", "w", encoding='utf-8') as fh:
+    fh.write(msg)

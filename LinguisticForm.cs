@@ -45,9 +45,9 @@ public class LinguisticForm
     public GrammaticalNumber GrammaticalNumber { get; set; }
 
     /// <summary>
-    /// Полнота/ краткость
+    /// Полнота / краткость
     /// </summary>
-    public СompletenessСoncisenessCategory СompletenessСoncisenessCategory { get; set; }
+    public CompletenessConcisenessCategory CompletenessConcisenessCategory { get; set; }
 
     /// <summary>
     /// Лицо
