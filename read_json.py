@@ -124,10 +124,12 @@ class ConversionDictionary(TestDictionary):
     def get_conversion(self) -> dict:
         answer = dict()
         for key, val in self.json_d.items():
-            trash = []
             answer[key] = list()
             for temp in val:
-                answer[key] += [f'{k} = "{y}"' for k, v in self.must_have_w.items() if (y := temp.get(v))]
+                trash = list()
+                # pep = list()
+                # answer[key] += [f'{k} = "{y}"' for k, v in self.must_have_w.items() if (y := temp.get(v))]
+                pep = [f'{k} = "{y}"' for k, v in self.must_have_w.items() if (y := temp.get(v))]
                 for ke, va in temp.items():
                     if ke not in self.unique_fields:
                         clast = d_for_merge[ke]
@@ -136,13 +138,15 @@ class ConversionDictionary(TestDictionary):
                         va = va.lower()
                         if va in cls_fillness:
                             net_v = cls_fillness[va]
-                            answer[key].append(f"{cls} = {cls}.{net_v}")
+                            # answer[key].append(f"{cls} = {cls}.{net_v}")
+                            pep.append(f"{cls} = {cls}.{net_v}")
                         else:
                             continue
                     elif ke in self.ServiceComment:
                         trash.append(f"{ke} : {va}")
-            answer[key].append(f'ServiceComment = "' + ";".join([i for i in trash]) + '"')
-
+                # answer[key].append(f'ServiceComment = "' + ";".join([i for i in trash]) + '"')
+                pep.append(f'ServiceComment = "' + ";".join([i for i in trash]) + '"')
+            answer[key].append(pep)
         return answer
 
 
@@ -152,8 +156,10 @@ main_dict = cls.get_conversion()
 st = """public List<LinguisticForm> GetWords()
     {
         return new List<LinguisticForm> {
-            {% for word in main_dict -%}
-                new LinguisticForm{ {{', '.join(main_dict[word])}} },
+            {% for word, l in main_dict.items() -%}
+                {% for arr in l -%}
+                    new LinguisticForm{ {{', '.join(arr)}} },
+                {% endfor -%}                
             {% endfor -%}
         };
     }"""
