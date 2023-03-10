@@ -20,5 +20,8 @@ public enum Tense : byte
     Future = 3,
 
     [Display(Name = "Aorist")]
-    Aorist = 4
+    Aorist = 4,
+
+    [Display(Name = "Имперфект")]
+    Imperfect = 5
 }

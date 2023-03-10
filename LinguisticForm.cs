@@ -16,6 +16,10 @@ public class LinguisticForm
     /// Словоформа
     /// </summary>
     public string Word { get; set; }
+    /// <summary>
+    /// Форма настоящего времени
+    /// </summary>
+    public string PresentTenseForm { get; set; }
 
     /// <summary>
     /// Часть речи

@@ -10,9 +10,9 @@ public enum DegreeOfComparison : byte
     [Display(Name = "Не указана")]
     NotSet = 0,
 
-    [Display(Name = "Мужской")]
-    Masculine = 1,
+    [Display(Name = "Сравнительная")]
+    Comparative = 1,
 
-    [Display(Name = "Женский")]
-    Feminine = 2
+    [Display(Name = "Положительная")]
+    Positive = 2
 }

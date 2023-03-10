@@ -33,8 +33,10 @@ class MainReader:
 
 class TestDictionary(MainReader):
     # не для мэтча
-    unique_fields = ["lemma", "word", "Форма наст. вр.", "Комментарий", "gramm", "grdic", "tag_str",
-                     "tags", "manual", "Ошибка", "Тип склонения", "Возвратность"]
+    # unique_fields = ["lemma", "word", "Форма наст. вр.", "Комментарий", "gramm", "grdic", "tag_str",
+    #                  "tags", "manual", "Ошибка", "Тип склонения", "Возвратность"]
+    unique_fields = ["lemma", "word", "Комментарий", "gramm", "grdic", "Форма наст. вр.", "tags"]
+    # Форма наст. вр. !!!спросить
 
     def __init__(self, json_f: str, net_f_path: str) -> None:
         super().__init__(json_f, net_f_path)
@@ -74,6 +76,7 @@ class TestDictionary(MainReader):
                 # print("Lost:", k)
         return n_class_d
 
+
     def create_match_d(self, gr: int = 1) -> dict:
         matched_d = dict()
         n_class_d = self.merge_json_keys_with_main_net_class()
@@ -106,7 +109,7 @@ class TestDictionary(MainReader):
 
         return matched_d
 
-
+pprint(TestDictionary(json_f=file, net_f_path=net_f_path).fields_filling())
 # pprint(TestDictionary(json_f=file, net_f_path=net_f_path).create_match_d())
 
 
@@ -150,21 +153,21 @@ class ConversionDictionary(TestDictionary):
         return answer
 
 
-cls = ConversionDictionary(json_f=file, net_f_path=net_f_path)
-main_dict = cls.get_conversion()
-
-st = """public List<LinguisticForm> GetWords()
-    {
-        return new List<LinguisticForm> {
-            {% for word, l in main_dict.items() -%}
-                {% for arr in l -%}
-                    new LinguisticForm{ {{', '.join(arr)}} },
-                {% endfor -%}                
-            {% endfor -%}
-        };
-    }"""
-
-tm = Template(st)
-msg = tm.render(main_dict=main_dict)
-with open("net_result", "w", encoding='utf-8') as fh:
-    fh.write(msg)
+# cls = ConversionDictionary(json_f=file, net_f_path=net_f_path)
+# main_dict = cls.get_conversion()
+#
+# st = """public List<LinguisticForm> GetWords()
+#     {
+#         return new List<LinguisticForm> {
+#             {% for word, l in main_dict.items() -%}
+#                 {% for arr in l -%}
+#                     new LinguisticForm{ {{', '.join(arr)}} },
+#                 {% endfor -%}
+#             {% endfor -%}
+#         };
+#     }"""
+#
+# tm = Template(st)
+# msg = tm.render(main_dict=main_dict)
+# with open("net_result", "w", encoding='utf-8') as fh:
+#     fh.write(msg)
