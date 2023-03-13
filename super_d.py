@@ -45,11 +45,13 @@ dfj = {'NER': ['личн.', 'геогр.', 'патроним', 'этноним']
 # pprint(TestDictionary(json_f=file, net_f_path=net_f_path).create_match_d())
 d_for_merge = {
  'NER': {'NF': 'PersonalityCategory', 'match_t': {'личн.': 'Personal'}},
+
  'Время': {'NF': 'Tense',
            'match_t': {'аор.': 'Aorist',
                        'буд.': 'Future',
                        'имперф.': 'Imperfect',  # датакласс не предусматривает # надо добавить вместо сов
                        'наст.': 'Present'}},
+
  'Залог': {'NF': 'Voice',
            'match_t': {'действит.': 'Active', 'страдат.': 'Passive'}},
 
@@ -59,6 +61,7 @@ d_for_merge = {
  'Наклонение': {'NF': 'GrammaticalMood',
                 'match_t': {'изъяв.': 'Realismood',
                             'повелит.': 'Imperativemood'}},
+
  'Падеж': {'NF': 'GrammaticalCase',
            'match_t': {'вин.': 'Accusative',
                        'вин.-род.': 'Accusative',  # датакласс не предусматривает == винительный
@@ -84,6 +87,7 @@ d_for_merge = {
                                        'личн.ф.': 'PersonalForm', # added
                                        'прич.': 'Participle',
                                        'супин': 'Supine'}},
+
  'Род': {'NF': 'GrammaticalGender',
          'match_t': {'б/р': 'No',  # added
                      'ж.': 'Feminine',
@@ -119,13 +123,13 @@ d_for_merge = {
                 },
 
  'Число': {'NF': 'GrammaticalNumber',
-           'match_t': {'дв.': 'Dual', 'ед.': 'Singular', 'мн.': 'Plural'}}}
-
-
-
+           'match_t': {'дв.': 'Dual', 'ед.': 'Singular', 'мн.': 'Plural'}},
+ 'Возвратность': {'NF': 'Recurrence', 'match_t': {'возвр.': 'Returnable'}},
+ 'Тип склонения': {'NF': 'DeclensionType', 'match_t': {'Fixed': 'Fixed'}}
+}
 
 
 # не затронутые файлы
-not_found_fnet = ['PronounType.cs']
+not_found_f_net = ['PronounType.cs']
 
 not_found_kjs = ['Возвратность']

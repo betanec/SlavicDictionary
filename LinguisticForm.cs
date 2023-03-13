@@ -22,6 +22,16 @@ public class LinguisticForm
     public string PresentTenseForm { get; set; }
 
     /// <summary>
+    /// Комментарий
+    /// </summary>
+    public string Comment { get; set; }
+
+    /// <summary>
+    /// Тип валидации
+    /// </summary>
+    public Validation Validation { get; set; } //сам класс не существует
+
+    /// <summary>
     /// Часть речи
     /// </summary>
     public PartOfSpeech PartOfSpeech { get; set; }

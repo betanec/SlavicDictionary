@@ -35,7 +35,13 @@ class TestDictionary(MainReader):
     # не для мэтча
     # unique_fields = ["lemma", "word", "Форма наст. вр.", "Комментарий", "gramm", "grdic", "tag_str",
     #                  "tags", "manual", "Ошибка", "Тип склонения", "Возвратность"]
-    unique_fields = ["lemma", "word", "Комментарий", "gramm", "grdic", "Форма наст. вр.", "tags"]
+    # unique_fields = ["lemma", "word", "Комментарий", "gramm", "grdic", "Форма наст. вр.", "tags"]
+    unique_fields = ["lemma", "word",
+                     "Комментарий", "gramm",
+                     "grdic", "tags",
+                     "tag_str", "manual",
+                     "Форма наст. вр.", "Ошибка",
+                     ]
     # Форма наст. вр. !!!спросить
 
     def __init__(self, json_f: str, net_f_path: str) -> None:
@@ -109,20 +115,31 @@ class TestDictionary(MainReader):
 
         return matched_d
 
-pprint(TestDictionary(json_f=file, net_f_path=net_f_path).fields_filling())
+# pprint(TestDictionary(json_f=file, net_f_path=net_f_path).fields_filling())
 # pprint(TestDictionary(json_f=file, net_f_path=net_f_path).create_match_d())
+
+
+def validation_status(arr):
+    if "manual" in arr and arr.get("manual") == 1:
+        return 'Validation = "Черновик"'
+    elif "Ошибка" in arr and arr.get("Ошибка") !='':
+        return 'Validation = "Error"'
+    else:
+        return 'Validation = "Валидация"'
 
 
 class ConversionDictionary(TestDictionary):
 
-    ServiceComment = ["grdic", "Форма наст. вр.", "gramm"]
+    ServiceComment = ["NER", "Комментарий", "Ошибка"]
 
-    must_have_w = {"Lemma": "lemma", "Word": "word", "Comment": "Комментарий"}
+    must_have_w = {"Lemma": "lemma",
+                   "Word": "word",
+                   "PresentTenseForm": "Форма наст. вр."}
+    # "Comment": "Комментарий"
 
     def __init__(self, json_f: str, net_f_path: str) -> None:
         super().__init__(json_f, net_f_path)
         self.conv = self.get_conversion()
-
 
     def get_conversion(self) -> dict:
         answer = dict()
@@ -130,9 +147,10 @@ class ConversionDictionary(TestDictionary):
             answer[key] = list()
             for temp in val:
                 trash = list()
+                vs = validation_status(temp)
                 # pep = list()
                 # answer[key] += [f'{k} = "{y}"' for k, v in self.must_have_w.items() if (y := temp.get(v))]
-                pep = [f'{k} = "{y}"' for k, v in self.must_have_w.items() if (y := temp.get(v))]
+                pep = [f'{k} = "{y}"' for k, v in self.must_have_w.items() if (y := temp.get(v))] + [vs]
                 for ke, va in temp.items():
                     if ke not in self.unique_fields:
                         clast = d_for_merge[ke]
@@ -148,26 +166,30 @@ class ConversionDictionary(TestDictionary):
                     elif ke in self.ServiceComment:
                         trash.append(f"{ke} : {va}")
                 # answer[key].append(f'ServiceComment = "' + ";".join([i for i in trash]) + '"')
-                pep.append(f'ServiceComment = "' + ";".join([i for i in trash]) + '"')
+                # pep.append(f'ServiceComment = "' + ";".join([i for i in trash]) + '"')
+                gcom = ";".join([i for i in trash]) + '"'
+                if gcom != '"':
+                    # print(gcom)
+                    pep.append(f'Comment = "{gcom}')
             answer[key].append(pep)
         return answer
 
 
-# cls = ConversionDictionary(json_f=file, net_f_path=net_f_path)
-# main_dict = cls.get_conversion()
-#
-# st = """public List<LinguisticForm> GetWords()
-#     {
-#         return new List<LinguisticForm> {
-#             {% for word, l in main_dict.items() -%}
-#                 {% for arr in l -%}
-#                     new LinguisticForm{ {{', '.join(arr)}} },
-#                 {% endfor -%}
-#             {% endfor -%}
-#         };
-#     }"""
-#
-# tm = Template(st)
-# msg = tm.render(main_dict=main_dict)
-# with open("net_result", "w", encoding='utf-8') as fh:
-#     fh.write(msg)
+cls = ConversionDictionary(json_f=file, net_f_path=net_f_path)
+main_dict = cls.get_conversion()
+
+st = """public List<LinguisticForm> GetWords()
+    {
+        return new List<LinguisticForm> {
+            {% for word, l in main_dict.items() -%}
+                {% for arr in l -%}
+                    new LinguisticForm{ {{', '.join(arr)}} },
+                {% endfor -%}
+            {% endfor -%}
+        };
+    }"""
+
+tm = Template(st)
+msg = tm.render(main_dict=main_dict)
+with open("net_result.cs", "w", encoding='utf-8') as fh:
+    fh.write(msg)
